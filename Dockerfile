@@ -1,16 +1,16 @@
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
-# Cambiamos a root para arreglar los permisos
 USER root
 
-# Creamos la carpeta del sistema y le damos permisos totales
-RUN mkdir -p /.system /var/opt/mssql && \
-    chown -R mssql:0 /.system /var/opt/mssql && \
-    chmod -R 777 /.system /var/opt/mssql
+# Crear todas las rutas que SQL Server intenta tocar por defecto
+RUN mkdir -p /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log && \
+    chown -R mssql:0 /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log && \
+    chmod -R 777 /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log
 
-# Volvemos al usuario mssql para que SQL Server inicie feliz
 USER mssql
 
-EXPOSE 1433
+# Forzar los directorios mediante variables de entorno internas de SQL Server
+ENV MSSQL_DATA_DIR=/var/opt/mssql/data
+ENV MSSQL_LOG_DIR=/var/opt/mssql/log
 
 CMD ["/opt/mssql/bin/sqlservr"]
