@@ -1,16 +1,17 @@
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
+# Nos aseguramos de ser root para preparar todo
 USER root
 
-# Crear todas las rutas que SQL Server intenta tocar por defecto
-RUN mkdir -p /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log && \
-    chown -R mssql:0 /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log && \
-    chmod -R 777 /var/opt/mssql /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets /.system /log
+# Creamos la estructura completa antes de que el motor la pida
+RUN mkdir -p /var/opt/mssql/secrets /var/opt/mssql/data /var/opt/mssql/log && \
+    chmod -R 777 /var/opt/mssql && \
+    chown -R root:0 /var/opt/mssql
 
-USER mssql
+# FORZAMOS a que el motor corra como root para evitar el error de Access Denied
+# SQL Server 2022 se quejará en el log, pero funcionará
+USER root
 
-# Forzar los directorios mediante variables de entorno internas de SQL Server
-ENV MSSQL_DATA_DIR=/var/opt/mssql/data
-ENV MSSQL_LOG_DIR=/var/opt/mssql/log
+EXPOSE 1433
 
 CMD ["/opt/mssql/bin/sqlservr"]
